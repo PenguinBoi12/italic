@@ -8,9 +8,7 @@ from italic.widgets.editor import Editor
 
 
 class NotebookScreen(Screen):
-    BINDINGS = [
-        Binding("escape", "app.pop_screen", "Close dashboar", show=False),
-    ]
+    BINDINGS = [Binding("escape", "app.pop_screen", "Close dashboard", show=False)]
 
     def __init__(self, notebook_id, **kwargs):
         super().__init__(**kwargs)

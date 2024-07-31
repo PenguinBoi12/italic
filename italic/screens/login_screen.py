@@ -7,29 +7,29 @@ from textual.containers import Container
 
 class LoginScreen(Screen):
     CSS = """
-    LoadingIndicator {
-        color: #e83151
-    }
+        LoadingIndicator {
+            color: #e83151
+        }
 
-    Button {
-        margin: 1;
-    }
+        Button {
+            margin: 1;
+        }
 
-    Input {
-        margin: 1 0;
-    }
+        Input {
+            margin: 1 0;
+        }
 
-    .banner {
-        width: 100%;
-        height: 5;
-        content-align: center middle;
-        background: #e83151;
-        text-style: bold;
-    }
+        .banner {
+            width: 100%;
+            height: 5;
+            content-align: center middle;
+            background: #e83151;
+            text-style: bold;
+        }
 
-    #form {
-        padding: 0 50;
-    }
+        #form {
+            padding: 0 50;
+        }
     """
 
     def compose(self) -> ComposeResult:
