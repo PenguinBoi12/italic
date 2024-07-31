@@ -1,0 +1,64 @@
+from textual.app import ComposeResult
+from textual.screen import Screen
+from textual.widgets import Header, Footer, ListView, ListItem, Label, Static, LoadingIndicator
+
+from italic.screens.notebook_screen import NotebookScreen
+
+class DashboardScreen(Screen):
+	def compose(self) -> ComposeResult:
+		yield Header()
+		yield Footer()
+
+		def build_item(notebook):
+			id = notebook["id"]
+			title = notebook["title"]
+
+			return ListItem(
+				Static(f"=== {title} ==="),
+				Static(f"Description of notebook {title}"),
+				name=id
+			)
+
+		yield ListView(
+			*map(
+				build_item,
+				[
+					{"id": "0ca72520-a7b1-4557-9bea-030aeb6aaaa4", "title": "Internet Golf Protocol"},
+					{"id": "51fa7c3b-2553-4ae5-bfdb-adebf6827da8", "title": "Faux Text"},
+					{"id": "7f1f2bef-1550-41f4-ab0a-a1de54daaf2f", "title": "example I"}
+				]
+			)
+		)
+
+	# Had to set async for the gql query
+	async def on_list_view_selected(self, selection) -> None:
+		item = selection.item
+		self.app.push_screen(NotebookScreen(item.name, name=item.name))
+
+	def on_mount(self) -> None:
+		self.sub_title = "My notebooks"
+
+		token = self.app.token
+		transport = AIOHTTPTransport(url="https://api.codesociety.xyz/api", headers={'Authorization': f'Bearer {token}'})
+		client = Client(transport=transport, fetch_schema_from_transport=True)
+
+		query = gql(
+            """
+              query GetNotebooks {
+                notebooks {
+                  id
+                  title
+				  description
+                 }
+                }
+              }
+            """
+        )
+
+		self.set_loading(True)
+		result = await client.execute_async(query, variable_values={"id": self.notebook_id})
+		self.set_loading(False)
+
+		for notebook in result["notebooks"]:
+			
+

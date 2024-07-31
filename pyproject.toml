@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+
+[project]
+name = "Italic"
+authors = [{ name="Code Society Lab" }, { name="Simon Roy", email="ivan@habunek.com" }]
+description = "Cursif TUI client"
+license = { file="LICENSE" }
+requires-python = ">=3.10"
+dynamic = ["version"]
+
+dependencies = [
+    "textual",
+    "textual[syntax]",
+    "gql[all]",
+	"keyring",
+]
+
+[project.urls]
+"Homepage" = "https://codesociety.xyz"
+
+[project.scripts]
+italic = "italic:run"
+
+[tool.setuptools]
+packages=[
+    "italic",
+	"italic.widgets",
+	"italic.screens",
+]
