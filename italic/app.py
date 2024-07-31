@@ -18,7 +18,8 @@ class ItalicApp(App):
             key="ctrl+q",
             action="quit",
             description="Quit the app",
-            priority=True
+            priority=True,
+            show=False
         ),
     ]
 

@@ -2,6 +2,7 @@ from textual.app import ComposeResult
 from textual.widgets import Markdown, TextArea
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.binding import Binding
 from textual import work
 
 
@@ -9,7 +10,6 @@ class Editor(Widget):
     BINDINGS = [
         ("ctrl+s", "save", "Save"),
         ("ctrl+r", "refresh", "Refresh"),
-        ("ctrl+n", "rename", "Rename Page"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -31,10 +31,6 @@ class Editor(Widget):
         if self.page:
             self.save()
 
-    async def action_rename(self):
-        if self.page:
-            self.save()
-
     async def action_refresh(self):
         if self.page:
             self.load(self.page.id)
@@ -45,7 +41,6 @@ class Editor(Widget):
             query GetPage($id: ID!) {
                 page(id: $id) {
                     id
-                    title
                     content
                 }
             }
@@ -56,17 +51,20 @@ class Editor(Widget):
             variables={"id": page_id}
         )
 
-        self.page = result.page
-        self.sub_title = self.page.title
-        self.text_area.load_text(self.page.content)
+        if result.ok():
+            self.page = result.page
+            self.text_area.load_text(self.page.content or "")
+
+    def unload(self):
+        self.page = None
+        self.text_area.clear()
 
     @work(exclusive=True)
     async def save(self):
         query = """
-            mutation UpdatePage($id: ID!, $title: String, $content: String) {
-                updatePage(id: $id, title: $title, content: $content) {
+            mutation UpdatePage($id: ID!, $content: String) {
+                updatePage(id: $id, content: $content) {
                     id
-                    title
                     content
                 }
             }
@@ -76,10 +74,8 @@ class Editor(Widget):
             query,
             variables={
                 "id": self.page.id,
-                "title": self.page.title,
                 "content": self.text_area.text
             }
         )
 
         self.page = result.update_page
-        self.sub_title = self.page.title
