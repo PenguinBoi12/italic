@@ -1,26 +1,20 @@
-from textual.app import ComposeResult, RenderResult
-from textual.widgets import Markdown, TextArea, LoadingIndicator
+from textual.app import ComposeResult
+from textual.widgets import Markdown, TextArea
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual import work
 
-# Move all graphql stuff elsewhere
-from gql import gql, Client
-from gql.transport.aiohttp import AIOHTTPTransport
-
 
 class Editor(Widget):
     BINDINGS = [
-		("ctrl+s", "save", "Save"),
-		("ctrl+r", "refresh", "Refresh"),
-		("ctrl+n", "rename", "Rename Page"),
-	]
-
-    def __init__(self):
-        super().__init__()
-        self.page = None
+        ("ctrl+s", "save", "Save"),
+        ("ctrl+r", "refresh", "Refresh"),
+        ("ctrl+n", "rename", "Rename Page"),
+    ]
 
     def compose(self) -> ComposeResult:
+        self.page = None
+
         self.text_area = TextArea("", language="markdown")
         self.preview = Markdown(self.text_area.text)
 
@@ -39,64 +33,53 @@ class Editor(Widget):
 
     async def action_rename(self):
         if self.page:
-            self.page["title"] = "new name"
             self.save()
 
     async def action_refresh(self):
         if self.page:
-            self.load(self.page["id"])
+            self.load(self.page.id)
 
     @work(exclusive=True)
     async def load(self, page_id) -> None:
-        token = self.app.token
-        transport = AIOHTTPTransport(url="https://api.codesociety.xyz/api", headers={'Authorization': f'Bearer {token}'})
-        client = Client(transport=transport, fetch_schema_from_transport=True)
-
-        query = gql(
-            """
-              query GetPage($id: ID!) {
+        query = """
+            query GetPage($id: ID!) {
                 page(id: $id) {
-                  id
-                  title
-                  content
+                    id
+                    title
+                    content
                 }
-              }
-            """
+            }
+        """
+
+        result = await self.app.api.query(
+            query,
+            variables={"id": page_id}
         )
 
-        result = await client.execute_async(query, variable_values={"id": page_id})
-
-        self.page = result["page"]
-        self.sub_title = self.page["title"]
-
-        self.text_area.load_text(self.page["content"])
+        self.page = result.page
+        self.sub_title = self.page.title
+        self.text_area.load_text(self.page.content)
 
     @work(exclusive=True)
     async def save(self):
-        token = self.app.token
-        transport = AIOHTTPTransport(url="https://api.codesociety.xyz/api", headers={'Authorization': f'Bearer {token}'})
-        client = Client(transport=transport, fetch_schema_from_transport=True)
-
-        query = gql(
-            """
-              mutation UpdatePage($id: ID!, $title: String, $content: String) {
+        query = """
+            mutation UpdatePage($id: ID!, $title: String, $content: String) {
                 updatePage(id: $id, title: $title, content: $content) {
-                  id
-                  title
-                  content
+                    id
+                    title
+                    content
                 }
-              }
-            """
-        )
+            }
+        """
 
-        result = await client.execute_async(
+        result = await self.app.api.query(
             query,
-            variable_values={
-                "id": self.page["id"],
-                "title": self.page["title"],
+            variables={
+                "id": self.page.id,
+                "title": self.page.title,
                 "content": self.text_area.text
             }
         )
 
-        self.page = result["updatePage"]
-        self.sub_title = self.page["title"]
+        self.page = result.update_page
+        self.sub_title = self.page.title

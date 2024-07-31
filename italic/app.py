@@ -1,14 +1,19 @@
 from textual.app import App, ComposeResult
-from textual.screen import Screen
 from textual.binding import Binding
 from textual.widgets import Header, Footer
-
-from keyring import set_password, get_password
 
 from italic.screens.dashboard_screen import DashboardScreen
 from italic.screens.login_screen import LoginScreen
 
+from italic.api import CursifClient
+from keyring import set_password, get_password, delete_password
+
+KEYRING_SERVICE = "CURSIF"
+KEYRING_NAME = "TOKEN"
+
+
 class ItalicApp(App):
+
     BINDINGS = [
         Binding(
             key="ctrl+q",
@@ -24,13 +29,30 @@ class ItalicApp(App):
         ),
     ]
 
+    @property
+    def token(self):
+        return get_password(KEYRING_SERVICE, KEYRING_NAME)
+
+    @token.setter
+    def token(self, token):
+        set_password(KEYRING_SERVICE, KEYRING_NAME, token)
+
+    @token.deleter
+    def token(self):
+        delete_password(KEYRING_SERVICE, KEYRING_NAME)
+
+    @property
+    def api(self):
+        return CursifClient(self.token)
+
     def compose(self) -> ComposeResult:
+        self._client = None
+
         yield Header()
         yield Footer()
 
     def on_mount(self) -> None:
         self.title = "Italic"
-        self.token = get_password("CURSIF", "TOKEN")
 
         if self.token:
             self.push_screen(DashboardScreen())
@@ -38,9 +60,9 @@ class ItalicApp(App):
             self.push_screen(LoginScreen(), self.on_login)
 
     def on_login(self, token):
-       	self.token = token
-        set_password("CURSIF", "TOKEN", token)
+        self.token = token
         self.push_screen(DashboardScreen())
 
+
 if __name__ == '__main__':
-	ItalicApp().run()
+    ItalicApp().run()
