@@ -13,19 +13,12 @@ KEYRING_NAME = "TOKEN"
 
 
 class ItalicApp(App):
-
     BINDINGS = [
         Binding(
             key="ctrl+q",
             action="quit",
             description="Quit the app",
             priority=True
-        ),
-        Binding(
-            key="ctrl+question_mark",
-            action="help",
-            description="Show help screen",
-            key_display="?",
         ),
     ]
 
