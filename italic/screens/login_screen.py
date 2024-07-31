@@ -3,6 +3,7 @@ from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Input, Button, Label
 from textual.containers import Container
+from textual import work
 
 
 class LoginScreen(Screen):
@@ -51,6 +52,7 @@ class LoginScreen(Screen):
         self.sub_title = "Login"
 
     @on(Button.Pressed, "#submit")
+    @work(exclusive=True)
     async def submit(self) -> None:
         self.set_loading(True)
 
