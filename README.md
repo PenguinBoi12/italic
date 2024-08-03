@@ -65,7 +65,7 @@ CURSIF_ENDPOINT=https://cursif.example.com/api
   - [ ] Create a notebook
   - [ ] Delete a notebook
   - [ ] Update a notebook
-- [ ] Pages
+- [X] Pages
   - [X] Create a page
   - [X] Rename a page
   - [X] Delete a page
