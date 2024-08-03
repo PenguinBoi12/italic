@@ -14,6 +14,7 @@ dependencies = [
     "textual[syntax]",
     "gql[all]",
 	"keyring",
+    "python-dotenv",
 ]
 
 [project.urls]

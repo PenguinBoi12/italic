@@ -19,7 +19,6 @@ class DashboardScreen(Screen):
         self.app.push_screen(NotebookScreen(item.name, name=item.name))
 
     async def on_mount(self) -> None:
-        self.set_loading(True)
         self.sub_title = "My notebooks"
 
         query = """
@@ -32,15 +31,14 @@ class DashboardScreen(Screen):
           }
         """
 
-        result = await self.app.api.query(query)
-
-        for notebook in result.notebooks:
-            self.list_view.append(
-                ListItem(
-                    Static(f"=== {notebook.title} ==="),
-                    Static(notebook.description or " "),
-                    name=notebook.id
+        def on_success(result):
+            for notebook in result.notebooks:
+                self.list_view.append(
+                    ListItem(
+                        Static(f"=== {notebook.title} ==="),
+                        Static(notebook.description or " "),
+                        name=notebook.id
+                    )
                 )
-            )
 
-        self.set_loading(False)
+        await self.app.api.query(query, on_success=on_success)

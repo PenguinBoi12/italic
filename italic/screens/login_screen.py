@@ -8,10 +8,6 @@ from textual import work
 
 class LoginScreen(Screen):
     CSS = """
-        LoadingIndicator {
-            color: #e83151
-        }
-
         Button {
             margin: 1;
         }
@@ -58,8 +54,6 @@ class LoginScreen(Screen):
     @on(Button.Pressed, "#submit")
     @work(exclusive=True)
     async def submit(self) -> None:
-        self.set_loading(True)
-
         query = """
             mutation Login($email: String!, $password: String!) {
                 login(email: $email, password: $password) {
@@ -71,22 +65,18 @@ class LoginScreen(Screen):
             }
         """
 
-        result = await self.app.api.query(
-            query,
-            variables={
-                "email": self.email.value, 
-                "password": self.password.value
-            }
-        )
-
-        if result.ok():
+        def on_success(result):
             username = result.login.user.username
             token = result.login.token
 
             self.notify(username, title="Welcome back!")
             self.dismiss(token)
-        else:
-            for error in result.errors:
-                self.notify(error.message, title="Error", severity="error")
 
-        self.set_loading(False)
+        await self.app.api.query(
+            query,
+            variables={
+                "email": self.email.value, 
+                "password": self.password.value
+            },
+            on_success=on_success
+        )

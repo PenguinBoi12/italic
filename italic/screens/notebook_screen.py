@@ -76,8 +76,6 @@ class NotebookScreen(Screen):
             yield self.editor
 
     async def on_mount(self) -> None:
-        self.set_loading(True)
-
         query = """
             query GetNotebook($id: ID!) {
                 notebook(id: $id) {
@@ -91,18 +89,18 @@ class NotebookScreen(Screen):
             }
         """
 
-        result = await self.app.api.query(
+        def on_success(result):
+            self.notebook = result.notebook
+            self.sub_title = result.notebook.title
+
+            for page in self.notebook.pages:
+                self.tabs.add_tab(Tab(page.title, id=f"page_{page.id}"))
+
+        await self.app.api.query(
             query,
-            variables={"id": self.notebook_id}
+            variables={"id": self.notebook_id},
+            on_success=on_success
         )
-
-        self.notebook = result.notebook
-        self.sub_title = result.notebook.title
-
-        for page in self.notebook.pages:
-            self.tabs.add_tab(Tab(page.title, id=f"page_{page.id}"))
-
-        self.set_loading(False)
 
     async def on_tabs_tab_activated(self, tab_activated):
         if self.tabs.tab_count > 0:
@@ -133,20 +131,22 @@ class NotebookScreen(Screen):
             }
         """
 
-        result = await self.app.api.query(
+        def on_success(result):
+            self.tabs.add_tab(
+                Tab(
+                    result.create_page.title,
+                    id=f"page_{result.create_page.id}"
+                )
+            )
+
+        await self.app.api.query(
             query,
             variables={
                 "title": title,
                 "parentId": self.notebook.id,
                 "parentType": "notebook"
-            }
-        )
-
-        self.tabs.add_tab(
-            Tab(
-                result.create_page.title,
-                id=f"page_{result.create_page.id}"
-            )
+            },
+            on_success=on_success
         )
 
     @work(exclusive=True)
@@ -182,13 +182,14 @@ class NotebookScreen(Screen):
             }
         """
 
-        result = await self.app.api.query(
+        def on_success(result):
+            self.tabs.remove_tab(self.tabs.active_tab)
+            self.editor.unload()
+
+        await self.app.api.query(
             query,
             variables={
                 "id": self.tabs.active_tab.id.split("_")[1],
-            }
+            },
+            on_success=on_success
         )
-
-        if result.ok():
-            self.tabs.remove_tab(self.tabs.active_tab)
-            self.editor.unload()

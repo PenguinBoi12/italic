@@ -46,14 +46,15 @@ class Editor(Widget):
             }
         """
 
-        result = await self.app.api.query(
-            query,
-            variables={"id": page_id}
-        )
-
-        if result.ok():
+        def on_success(result):
             self.page = result.page
             self.text_area.load_text(self.page.content or "")
+
+        await self.app.api.query(
+            query,
+            variables={"id": page_id},
+            on_success=on_success
+        )
 
     def unload(self):
         self.page = None
@@ -70,12 +71,14 @@ class Editor(Widget):
             }
         """
 
-        result = await self.app.api.query(
+        def on_success(result):
+            self.page = result.update_page
+
+        await self.app.api.query(
             query,
             variables={
                 "id": self.page.id,
                 "content": self.text_area.text
-            }
+            },
+            on_success=on_success
         )
-
-        self.page = result.update_page

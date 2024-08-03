@@ -41,7 +41,7 @@ $ italic
 You can also run the script manuall with: 
 ```bash
 $ cd italic
-$ python italic/app.py
+$ python italic/
 ```
 
 Login with your [Cursif](https://cursif.codesociety.xyz/) account. If you don't have an account create one at https://cursif.codesociety.xyz/register or via the [API](https://github.com/Code-Society-Lab/cursif-backend/wiki/GraphQL-API).
@@ -71,5 +71,5 @@ CURSIF_ENDPOINT=https://cursif.example.com/api
   - [X] Delete a page
   - [X] Edit the content of a page
   - [X] Markdown Preview
-- [ ] Proper error handling
+- [X] Proper error handling
  
