@@ -20,7 +20,7 @@ class LoginScreen(Screen):
             margin: 1 0;
         }
 
-        .banner {
+        #banner {
             width: 100%;
             height: 5;
             content-align: center middle;
@@ -29,7 +29,11 @@ class LoginScreen(Screen):
         }
 
         #form {
-            padding: 0 50;
+            width: 50;
+        }
+
+        .center-middle {
+            align: center middle;
         }
     """
 
@@ -40,10 +44,10 @@ class LoginScreen(Screen):
         yield Header()
         yield Footer()
 
-        with Container():
-            yield Label("Cursif", classes="banner")
+        yield Label("Cursif", id="banner")
 
-            with Container(id="form"):
+        with Container(classes="center-middle"):
+            with Container(id="form", classes="center-middle"):
                 yield self.email
                 yield self.password
                 yield Button("Login", id="submit")
